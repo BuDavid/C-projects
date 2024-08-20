@@ -1,7 +1,35 @@
 #include "vector.hpp"
+#include <stdexcept>
 
 template <typename T>
-Vector<T>::Vector() : m_ptr(nullptr), m_size(0), m_capacity(0) {}
+Vector<T>::Vector() noexcept : m_ptr(new T[m_capacity]), m_size(0), m_capacity(1) {}
+
+template <typename T>
+Vector<T>::Vector(const std::initializer_list<T>& list) : m_size(0), m_capacity(1) {
+    while (m_capacity <= list.size()) {
+        m_capacity *= 2;
+    }
+
+    m_ptr = new T[m_capacity];
+    for(const auto& elem : list) {
+        m_ptr[m_size++] = elem;
+    }
+}
+
+template <typename T>
+Vector<T>::Vector(size_type count, const T& value) : m_ptr(nullptr), m_size(count), m_capacity(1) {
+    if(count < 0) {
+        throw std::invalid_argument("The range must be greater than or equal to 0.");
+    }
+
+    while (m_capacity <= count && (m_capacity *= 2)); 
+
+    m_ptr = new T[m_capacity];
+    for(int i = 0; i < m_size; i++) {
+        m_ptr[i] = value;
+    }
+}
+
 
 template <typename T>
 Vector<T>::Vector(const Vector& other) {
@@ -9,12 +37,12 @@ Vector<T>::Vector(const Vector& other) {
 	m_capacity = other.m_capacity;
 	if (!other.m_ptr) {
 		m_ptr = nullptr;
-		return;
-	}
-	m_ptr = new int[m_capacity];
-	for (int i = 0; i < m_size; i++) {
-		m_ptr[i] = other.m_ptr[i];
-	}
+	} else {
+        m_ptr = new T[m_capacity];
+        for (int i = 0; i < m_size; i++) {
+            m_ptr[i] = other.m_ptr[i];
+        }
+    }
 }
 
 template <typename T>
@@ -25,18 +53,10 @@ Vector<T>::Vector(Vector&& other) noexcept {
 }
 
 template <typename T>
-void Vector<T>::swap(Vector& other) {
-	int tmp = m_size;
-	m_size = other.m_size;
-	other.m_size = tmp;
-
-	tmp = m_capacity;
-	m_capacity = other.m_capacity;
-	other.m_capacity = tmp;
-
-	int* tmp_ptr = m_ptr;
-	m_ptr = other.m_ptr;
-	other.m_ptr = tmp_ptr;
+void Vector<T>::swap(Vector& other) noexcept {
+    Vector<T> tmp(std::move(other));
+    other = std::move(*this);
+    *this = std::move(tmp); 
 }
 
 template <typename T>
@@ -46,12 +66,11 @@ Vector<T>& Vector<T>::operator=(const Vector& other) {
         m_size = other.m_size;
         m_capacity = other.m_capacity;
 
-        m_ptr = new int[m_capacity];
+        m_ptr = new T[m_capacity];
         for (int i = 0; i < m_size; i++) {
             m_ptr[i] = other.m_ptr[i];
         }
     }
-
     return *this;
 }
 
@@ -66,30 +85,105 @@ Vector<T>& Vector<T>::operator=(Vector&& other) noexcept {
 }
 
 template <typename T>
-void Vector<T>::insert(int idx, T element) {
-	if (idx < 0 || idx > m_size) {
-		return;
-	}
-	if (m_size + 1 >= m_capacity) {
-		allocate();
-	}
-	for (int i = m_size; i > idx; i--) {
-		m_ptr[i] = m_ptr[i-1];
-	}
-	m_size++;
-	m_ptr[idx] = element;
+typename Vector<T>::Iterator Vector<T>::erase(const Iterator& pos) {
+    if (pos < begin() || pos >= end()) {
+        throw std::out_of_range("Position out of range");
+    }
+
+    int idx = pos - begin();
+    m_ptr[idx].~T();
+
+    for (int i = idx; i < m_size - 1; i++) {
+        m_ptr[idx] = std::move(m_ptr[i + 1]);
+    }
+    m_size--;
+    return begin() + idx;
 }
 
 template <typename T>
-void Vector<T>::erase(int idx) {
-	if (idx < 0 || idx >= m_size) {
-		return;
-	}
-	m_size--;
-	while (idx < m_size) {
-		m_ptr[idx] = m_ptr[idx+1];
-		idx++;
-	}
+typename Vector<T>::Iterator Vector<T>::erase(const Iterator& first, const Iterator& last) {
+    if (first < begin() || last > end() || first > last) {
+        throw std::out_of_range("Position out of range");
+    }
+    int start = first - begin();
+    int end = last - begin();
+    int count = end - start;
+
+    for (int i = start; i < end; i++) {
+        m_ptr[i].~T();
+    }
+
+    for (int i = end; i < m_size; i++) {
+        m_ptr[start++] = std::move(m_ptr[i]);
+    }
+    m_size -= count;
+    return begin() + start;
+}
+
+template <typename T>
+typename Vector<T>::Iterator Vector<T>::insert(const Iterator& pos, const value_type& value) {
+    if (pos < begin() || pos > end()) {
+        throw std::out_of_range("Position out of range");
+    }
+
+    if (m_size + 1 >= m_capacity) {
+        resize(m_capacity * 2);
+    }
+    
+    int idx = pos - begin();
+    for (int i = m_size; i > idx; i--) {
+        m_ptr[i] = std::move(m_ptr[i-1]);
+    }
+
+    m_ptr[idx] = value;
+    m_size++;
+    return begin() + idx;
+}
+
+template <typename T>
+typename Vector<T>::Iterator Vector<T>::insert(const Iterator& pos, value_type&& value) {
+    if (pos < begin() || pos > end()) {
+        throw std::out_of_range("Position out of range");
+    }
+
+    if (m_size + 1 >= m_capacity) {
+        resize(m_capacity * 2);
+    }
+    
+    int idx = pos - begin();
+    for (int i = m_size; i > idx; i--) {
+        m_ptr[i] = std::move(m_ptr[i-1]);
+    }
+
+    m_ptr[idx] = std::move(value);
+    m_size++;
+    return begin() + idx;
+}
+
+template <typename T>
+typename Vector<T>::Iterator Vector<T>::insert(const Iterator& pos, Iterator first, Iterator last) {
+    if (pos < begin() || pos > end() || first >= last) {
+        throw std::out_of_range("Position out of range");
+    }
+
+    size_type range_size = last - first;
+
+    if (m_size + range_size >= m_capacity) {
+        while (m_capacity < m_size + range_size && (m_capacity *= 2));
+        resize(m_capacity);
+    }
+
+    int idx = pos - begin();
+    for (int i = m_size; i > idx; i--) {
+        m_ptr[i + range_size] = std::move(m_ptr[i-1]);
+    }
+
+    while (first < last) {
+        m_ptr[idx++] = *first;
+        first++;
+    }
+    m_size += range_size;
+    return begin() + idx;
 }
 
 template <typename T>
@@ -117,42 +211,70 @@ bool Vector<T>::operator==(const Vector& other) const {
 }
 
 template <typename T>
-T& Vector<T>::operator[](int idx) {
+typename Vector<T>::reference Vector<T>::operator[](size_type idx) noexcept {
 	return m_ptr[idx];
 }
 
 template <typename T>
-T& Vector<T>::at(int idx) {
+typename Vector<T>::const_reference Vector<T>::operator[](size_type idx) const noexcept {
+	return m_ptr[idx];
+}
+
+template <typename T>
+typename Vector<T>::reference Vector<T>::at(size_type idx) {
 	if (idx < 0 || idx >= m_size) {
-		std::cout << "Out of range" << std::endl;
-		std::exit(1);
+        throw std::out_of_range("Index is out of range.");
 	}
 	return m_ptr[idx];
 }
 
 template <typename T>
-T& Vector<T>::front() {
+typename Vector<T>::const_reference Vector<T>::at(size_type idx) const {
+	if (idx < 0 || idx >= m_size) {
+        throw std::out_of_range("Index is out of range.");
+	}
+	return m_ptr[idx];
+}
+
+template <typename T>
+typename Vector<T>::reference Vector<T>::front() {
 	return m_ptr[0];
 }
 
 template <typename T>
-T& Vector<T>::back() {
+typename Vector<T>::const_reference Vector<T>::front() const {
+	return m_ptr[0];
+}
+
+template <typename T>
+typename Vector<T>::reference Vector<T>::back() {
 	return m_ptr[m_size-1];
 }
 
 template <typename T>
-void Vector<T>::push_back(T element) {
+typename Vector<T>::const_reference Vector<T>::back() const {
+	return m_ptr[m_size-1];
+}
+
+template <typename T>
+void Vector<T>::push_back(const value_type& element) {
 	if (m_size + 1 >= m_capacity) {
-		allocate();
+        helper_resize(m_capacity * 2);
 	}
 	m_ptr[m_size++] = element;
 }
 
 template <typename T>
-void Vector<T>::pop_back() {
-	if (m_size) {
-		m_size--;
+void Vector<T>::push_back(value_type&& element) {
+	if (m_size + 1 >= m_capacity) {
+        helper_resize(m_capacity * 2);
 	}
+	m_ptr[m_size++] = std::move(element);
+}
+
+template <typename T>
+void Vector<T>::pop_back() {
+	if (m_size && m_size--); 
 }
 
 template <typename T>
@@ -161,12 +283,12 @@ bool Vector<T>::empty() const {
 }
 
 template <typename T>
-size_t Vector<T>::size() const {
+typename Vector<T>::size_type Vector<T>::size() const {
 	return m_size;
 }
 
 template <typename T>
-size_t Vector<T>::capacity() const {
+typename Vector<T>::size_type Vector<T>::capacity() const {
 	return m_capacity;
 }
 
@@ -182,35 +304,106 @@ void Vector<T>::clear() {
 
 template <typename T>
 void Vector<T>::shrink_to_fit() {
-	if (m_size == m_capacity) {
-		return;
+	if (m_size < m_capacity) {
+        helper_resize(m_size);
 	}
-	m_capacity = m_size; 
-	resize();
 }
 
 template <typename T>
-void Vector<T>::allocate() {
-	if (!m_ptr) {
-		m_capacity++;
-		m_ptr = new int[m_capacity];
-		return;
-	}
-	if (m_size >= m_capacity) {
-		m_capacity *= 2;
-	}
-	resize();	
+void Vector<T>::resize(size_type count) {
+    if (count < 0) {
+        throw std::invalid_argument("The size can't be negative");
+    }
+
+    if (count > m_size) {
+        helper_resize(m_capacity * 2);
+    }
+    m_size = count;
 }
 
 template <typename T>
-void Vector<T>::resize() {
-	int* tmp = m_ptr;
-	m_ptr = new int[m_capacity];
+void Vector<T>::resize(size_type count, const value_type& value) {
+    if (count < 0) {
+        throw std::invalid_argument("The size can't be negative");
+    }
+
+    if (count > m_size) {
+        helper_resize(m_capacity * 2);
+    }
+
+    for (int i = m_size; i < count; i++) {
+        m_ptr[i] = value;
+    }
+    m_size = count;
+}
+
+template <typename T>
+void Vector<T>::helper_resize(size_type new_cap) {
+	pointer tmp = m_ptr;
+    m_capacity = new_cap;
+	m_ptr = new T[m_capacity];
 	for (int i = 0; i < m_size; i++) {
 		m_ptr[i] = tmp[i];
 	}
 	delete [] tmp;
 	tmp = nullptr;
+}
+
+template <typename T>
+void Vector<T>::reserve(size_type size, size_type new_cap) {
+    if (m_capacity < new_cap) {
+        helper_resize(new_cap);
+    }
+}
+
+template <typename T>
+typename Vector<T>::Iterator Vector<T>::begin() const {
+    return Iterator(m_ptr);
+}
+
+template <typename T>
+typename Vector<T>::Iterator Vector<T>::end() const {
+    return Iterator(m_ptr + m_size);
+}
+
+template <typename T>
+typename Vector<T>::ConstIterator Vector<T>::cbegin() const {
+    return ConstIterator(m_ptr);
+}
+
+template <typename T>
+typename Vector<T>::ConstIterator Vector<T>::cend() const {
+    return ConstIterator(m_ptr + m_size);
+}
+
+template <typename T>
+typename Vector<T>::ReverseIterator Vector<T>::rbegin() const {
+    return ReverseIterator(m_ptr + m_size);
+}
+
+template <typename T>
+typename Vector<T>::ReverseIterator Vector<T>::rend() const {
+    return ReverseIterator(m_ptr);
+}
+
+template <typename T>
+typename Vector<T>::CReverseIterator Vector<T>::crbegin() const {
+    return CReverseIterator(m_ptr + m_size);
+}
+
+template <typename T>
+typename Vector<T>::CReverseIterator Vector<T>::crend() const {
+    return CReverseIterator(m_ptr);
+}
+
+template <typename T>
+typename Vector<T>::pointer Vector<T>::data() {
+    return m_ptr;
+}
+
+template <typename T>
+typename Vector<T>::const_pointer Vector<T>::data() const {
+    return m_ptr;
 }
 
 template <typename T>

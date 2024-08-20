@@ -1,5 +1,4 @@
 #include "linkedlist.hpp"
-
 LinkedList::LinkedList() : head(nullptr) {}
 
 LinkedList::LinkedList(const LinkedList& other) {
