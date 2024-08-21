@@ -56,7 +56,7 @@ Vector<T>::Vector(Vector&& other) noexcept {
 }
 
 template <typename T>
-void Vector<T>::swap(Vector& other) noexcept {
+constexpr void Vector<T>::swap(Vector& other) noexcept {
     Vector<T> tmp(std::move(other));
     other = std::move(*this);
     *this = std::move(tmp); 
@@ -359,42 +359,62 @@ void Vector<T>::reserve(size_type new_cap) {
 }
 
 template <typename T>
-typename Vector<T>::Iterator Vector<T>::begin() const {
-    return Iterator(m_ptr);
-}
-
-template <typename T>
-typename Vector<T>::Iterator Vector<T>::end() const {
-    return Iterator(m_ptr + m_size);
-}
-
-template <typename T>
-typename Vector<T>::ConstIterator Vector<T>::cbegin() const {
+typename Vector<T>::ConstIterator Vector<T>::begin() const {
     return ConstIterator(m_ptr);
 }
 
 template <typename T>
-typename Vector<T>::ConstIterator Vector<T>::cend() const {
+typename Vector<T>::Iterator Vector<T>::begin() {
+    return Iterator(m_ptr);
+}
+
+template <typename T>
+typename Vector<T>::ConstIterator Vector<T>::end() const {
     return ConstIterator(m_ptr + m_size);
 }
 
 template <typename T>
-typename Vector<T>::ReverseIterator Vector<T>::rbegin() const {
-    return ReverseIterator(m_ptr + m_size);
+typename Vector<T>::Iterator Vector<T>::end() {
+    return Iterator(m_ptr + m_size);
 }
 
 template <typename T>
-typename Vector<T>::ReverseIterator Vector<T>::rend() const {
-    return ReverseIterator(m_ptr);
+typename Vector<T>::ConstIterator Vector<T>::cbegin() const noexcept {
+    return ConstIterator(m_ptr);
 }
 
 template <typename T>
-typename Vector<T>::CReverseIterator Vector<T>::crbegin() const {
+typename Vector<T>::ConstIterator Vector<T>::cend() const noexcept {
+    return ConstIterator(m_ptr + m_size);
+}
+
+template <typename T>
+typename Vector<T>::CReverseIterator Vector<T>::rbegin() const {
     return CReverseIterator(m_ptr + m_size);
 }
 
 template <typename T>
-typename Vector<T>::CReverseIterator Vector<T>::crend() const {
+typename Vector<T>::ReverseIterator Vector<T>::rbegin() {
+    return ReverseIterator(m_ptr + m_size);
+}
+
+template <typename T>
+typename Vector<T>::CReverseIterator Vector<T>::rend() const {
+    return CReverseIterator(m_ptr);
+}
+
+template <typename T>
+typename Vector<T>::ReverseIterator Vector<T>::rend() {
+    return ReverseIterator(m_ptr);
+}
+
+template <typename T>
+typename Vector<T>::CReverseIterator Vector<T>::crbegin() const noexcept {
+    return CReverseIterator(m_ptr + m_size);
+}
+
+template <typename T>
+typename Vector<T>::CReverseIterator Vector<T>::crend() const noexcept {
     return CReverseIterator(m_ptr);
 }
 
