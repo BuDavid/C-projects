@@ -20,9 +20,7 @@ Vector<T>::Vector(size_type count, const_reference value) : m_ptr(nullptr), m_si
     if (count == 0) {
         return;
     }
-    if(count < 0) {
-        throw std::invalid_argument("The range must be greater than or equal to 0.");
-    }
+
     m_capacity = 1;
     while (m_capacity <= count && (m_capacity *= 2)); 
 
@@ -223,7 +221,7 @@ typename Vector<T>::const_reference Vector<T>::operator[](size_type idx) const n
 
 template <typename T>
 typename Vector<T>::reference Vector<T>::at(size_type idx) {
-	if (idx < 0 || idx >= m_size) {
+	if (idx >= m_size) {
         throw std::out_of_range("Index is out of range.");
 	}
 	return m_ptr[idx];
@@ -231,7 +229,7 @@ typename Vector<T>::reference Vector<T>::at(size_type idx) {
 
 template <typename T>
 typename Vector<T>::const_reference Vector<T>::at(size_type idx) const {
-	if (idx < 0 || idx >= m_size) {
+	if (idx >= m_size) {
         throw std::out_of_range("Index is out of range.");
 	}
 	return m_ptr[idx];
@@ -317,26 +315,20 @@ void Vector<T>::shrink_to_fit() {
 
 template <typename T>
 void Vector<T>::resize(size_type count) {
-    if (count < 0) {
-        throw std::invalid_argument("The size can't be negative");
-    }
-
-    if (count >= m_capacity) {
-        while (count >= m_capacity && (m_capacity *= 2));
-        reserve(m_capacity);
+    size_type tmp = m_capacity ? m_capacity : 1;
+    if (count >= tmp) {
+        while (count >= tmp && (tmp *= 2));
+        reserve(tmp);
     }
     m_size = count;
 }
 
 template <typename T>
 void Vector<T>::resize(size_type count, const_reference value) {
-    if (count < 0) {
-        throw std::invalid_argument("The size can't be negative");
-    }
-
-    if (count >= m_capacity) {
-        while (count >= m_capacity && (m_capacity *= 2));
-        reserve(m_capacity);
+    size_type tmp = m_capacity ? m_capacity : 1;
+    if (count >= tmp) {
+        while (count >= tmp && (tmp *= 2));
+        reserve(tmp);
     }
 
     for (size_type i = m_size; i < count; i++) {
