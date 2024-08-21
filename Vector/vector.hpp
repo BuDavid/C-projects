@@ -29,7 +29,7 @@ public:
     class CReverseIterator;
 public:
 	Vector() noexcept;
-	explicit Vector(size_type count, const T& value = T());
+	explicit Vector(size_type count, const_reference value = T());
 	Vector(const std::initializer_list<T>& list);
 	Vector(const Vector& other);
     Vector(Vector&& other) noexcept;
@@ -57,11 +57,11 @@ public:
     void pop_back();
     void shrink_to_fit();
     void reserve(size_type new_cap);
-    constexpr void swap(Vector& other) noexcept;
-    void push_back(const value_type& element);
+    void push_back(const_reference element);
     void push_back(value_type&& element);
     void resize(size_type count);
-    void resize(size_type count, const value_type& value);
+    void resize(size_type count, const_reference value);
+    void swap(Vector& other) noexcept;
     ConstIterator begin() const;
     Iterator begin();
     ConstIterator end() const;
@@ -76,7 +76,7 @@ public:
     CReverseIterator crend() const noexcept;
     Iterator erase(const Iterator& pos);
     Iterator erase(const Iterator& first, const Iterator& last);
-    Iterator insert(const Iterator& pos, const value_type& value);
+    Iterator insert(const Iterator& pos, const_reference value);
     Iterator insert(const Iterator& pos, value_type&& value);
     Iterator insert(const Iterator& pos, Iterator first, Iterator last);
 private:

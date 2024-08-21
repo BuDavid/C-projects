@@ -17,7 +17,7 @@ Vector<T>::Vector(const std::initializer_list<T>& list) : m_size(0), m_capacity(
 }
 
 template <typename T>
-Vector<T>::Vector(size_type count, const T& value) : m_ptr(nullptr), m_size(count), m_capacity(0) {
+Vector<T>::Vector(size_type count, const_reference value) : m_ptr(nullptr), m_size(count), m_capacity(0) {
     if (count == 0) {
         return;
     }
@@ -55,7 +55,7 @@ Vector<T>::Vector(Vector&& other) noexcept {
 }
 
 template <typename T>
-constexpr void Vector<T>::swap(Vector& other) noexcept {
+void Vector<T>::swap(Vector& other) noexcept {
     Vector<T> tmp(std::move(other));
     other = std::move(*this);
     *this = std::move(tmp); 
@@ -123,7 +123,7 @@ typename Vector<T>::Iterator Vector<T>::erase(const Iterator& first, const Itera
 }
 
 template <typename T>
-typename Vector<T>::Iterator Vector<T>::insert(const Iterator& pos, const value_type& value) {
+typename Vector<T>::Iterator Vector<T>::insert(const Iterator& pos, const_reference value) {
     if (pos < begin() || pos > end()) {
         throw std::out_of_range("Position out of range");
     }
@@ -259,7 +259,7 @@ typename Vector<T>::const_reference Vector<T>::back() const {
 }
 
 template <typename T>
-void Vector<T>::push_back(const value_type& element) {
+void Vector<T>::push_back(const_reference element) {
 	if (m_size + 1 >= m_capacity) {
         reserve(m_capacity ? m_capacity * 2 : 1);
 	}
@@ -325,7 +325,7 @@ void Vector<T>::resize(size_type count) {
 }
 
 template <typename T>
-void Vector<T>::resize(size_type count, const value_type& value) {
+void Vector<T>::resize(size_type count, const_reference value) {
     if (count < 0) {
         throw std::invalid_argument("The size can't be negative");
     }
