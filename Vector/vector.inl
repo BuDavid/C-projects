@@ -262,7 +262,7 @@ typename Vector<T>::const_reference Vector<T>::back() const {
 template <typename T>
 void Vector<T>::push_back(const value_type& element) {
 	if (m_size + 1 >= m_capacity) {
-        helper_resize(m_capacity ? m_capacity * 2 : 1);
+        reserve(m_capacity ? m_capacity * 2 : 1);
 	}
 	m_ptr[m_size++] = element;
 }
@@ -270,7 +270,7 @@ void Vector<T>::push_back(const value_type& element) {
 template <typename T>
 void Vector<T>::push_back(value_type&& element) {
 	if (m_size + 1 >= m_capacity) {
-        helper_resize(m_capacity ? m_capacity * 2 : 1);
+        reserve(m_capacity ? m_capacity * 2 : 1);
 	}
 	m_ptr[m_size++] = std::move(element);
 }
@@ -308,7 +308,7 @@ void Vector<T>::clear() {
 template <typename T>
 void Vector<T>::shrink_to_fit() {
 	if (m_size < m_capacity) {
-        helper_resize(m_size);
+        reserve(m_size);
 	}
 }
 
@@ -320,7 +320,7 @@ void Vector<T>::resize(size_type count) {
 
     if (count >= m_capacity) {
         while (count >= m_capacity && (m_capacity *= 2));
-        helper_resize(m_capacity);
+        reserve(m_capacity);
     }
     m_size = count;
 }
@@ -333,7 +333,7 @@ void Vector<T>::resize(size_type count, const value_type& value) {
 
     if (count >= m_capacity) {
         while (count >= m_capacity && (m_capacity *= 2));
-        helper_resize(m_capacity);
+        reserve(m_capacity);
     }
 
     for (int i = m_size; i < count; i++) {
@@ -343,22 +343,19 @@ void Vector<T>::resize(size_type count, const value_type& value) {
 }
 
 template <typename T>
-void Vector<T>::helper_resize(size_type new_cap) {
+void Vector<T>::reserve(size_type new_cap) {
+    if (m_capacity > new_cap) {
+        return;
+    }
+
 	pointer tmp = m_ptr;
     m_capacity = new_cap;
 	m_ptr = new T[m_capacity];
 	for (int i = 0; i < m_size; i++) {
-		m_ptr[i] = tmp[i];
+		m_ptr[i] = std::move(tmp[i]);
 	}
 	delete [] tmp;
 	tmp = nullptr;
-}
-
-template <typename T>
-void Vector<T>::reserve(size_type size, size_type new_cap) {
-    if (m_capacity < new_cap) {
-        helper_resize(new_cap);
-    }
 }
 
 template <typename T>

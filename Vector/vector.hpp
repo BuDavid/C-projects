@@ -56,7 +56,7 @@ public:
     void clear();
     void pop_back();
     void shrink_to_fit();
-    void reserve(size_type size, size_type new_cap);
+    void reserve(size_type new_cap);
     void swap(Vector& other) noexcept;
     void push_back(const value_type& element);
     void push_back(value_type&& element);
@@ -75,8 +75,6 @@ public:
     Iterator insert(const Iterator& pos, const value_type& value);
     Iterator insert(const Iterator& pos, value_type&& value);
     Iterator insert(const Iterator& pos, Iterator first, Iterator last);
-private:
-	void helper_resize(size_type new_cap);
 private:
 	pointer m_ptr;
 	size_type m_size;
