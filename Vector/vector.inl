@@ -343,17 +343,12 @@ void Vector<T>::resize(size_type count, const_reference value) {
 
 template <typename T>
 void Vector<T>::reserve(size_type new_cap) {
-    if (m_capacity > new_cap) {
-        return;
-    }
-
-    if (!new_cap) {
-        clear();
-        return;
-    }
-
     if (new_cap < 0) {
         throw std::invalid_argument("The size can't be negative.");
+    }
+
+    if (m_capacity > new_cap) {
+        return;
     }
 
 	pointer tmp = m_ptr;
