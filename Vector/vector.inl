@@ -2,7 +2,7 @@
 #include <stdexcept>
 
 template <typename T>
-Vector<T>::Vector() noexcept : m_ptr(new T[m_capacity]), m_size(0), m_capacity(1) {}
+Vector<T>::Vector() noexcept : m_ptr(nullptr), m_size(0), m_capacity(0) {}
 
 template <typename T>
 Vector<T>::Vector(const std::initializer_list<T>& list) : m_size(0), m_capacity(1) {
@@ -17,11 +17,14 @@ Vector<T>::Vector(const std::initializer_list<T>& list) : m_size(0), m_capacity(
 }
 
 template <typename T>
-Vector<T>::Vector(size_type count, const T& value) : m_ptr(nullptr), m_size(count), m_capacity(1) {
+Vector<T>::Vector(size_type count, const T& value) : m_ptr(nullptr), m_size(count), m_capacity(0) {
+    if (count == 0) {
+        return;
+    }
     if(count < 0) {
         throw std::invalid_argument("The range must be greater than or equal to 0.");
     }
-
+    m_capacity = 1;
     while (m_capacity <= count && (m_capacity *= 2)); 
 
     m_ptr = new T[m_capacity];
@@ -259,7 +262,7 @@ typename Vector<T>::const_reference Vector<T>::back() const {
 template <typename T>
 void Vector<T>::push_back(const value_type& element) {
 	if (m_size + 1 >= m_capacity) {
-        helper_resize(m_capacity * 2);
+        helper_resize(m_capacity ? m_capacity * 2 : 1);
 	}
 	m_ptr[m_size++] = element;
 }
@@ -267,7 +270,7 @@ void Vector<T>::push_back(const value_type& element) {
 template <typename T>
 void Vector<T>::push_back(value_type&& element) {
 	if (m_size + 1 >= m_capacity) {
-        helper_resize(m_capacity * 2);
+        helper_resize(m_capacity ? m_capacity * 2 : 1);
 	}
 	m_ptr[m_size++] = std::move(element);
 }
@@ -315,8 +318,9 @@ void Vector<T>::resize(size_type count) {
         throw std::invalid_argument("The size can't be negative");
     }
 
-    if (count > m_size) {
-        helper_resize(m_capacity * 2);
+    if (count >= m_capacity) {
+        while (count >= m_capacity && (m_capacity *= 2));
+        helper_resize(m_capacity);
     }
     m_size = count;
 }
@@ -327,8 +331,9 @@ void Vector<T>::resize(size_type count, const value_type& value) {
         throw std::invalid_argument("The size can't be negative");
     }
 
-    if (count > m_size) {
-        helper_resize(m_capacity * 2);
+    if (count >= m_capacity) {
+        while (count >= m_capacity && (m_capacity *= 2));
+        helper_resize(m_capacity);
     }
 
     for (int i = m_size; i < count; i++) {
