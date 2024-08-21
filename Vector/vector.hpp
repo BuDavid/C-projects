@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <initializer_list>
 #include <iostream>
+#include <limits>
 #include <utility>
 #include <stdexcept>
 
@@ -44,6 +45,7 @@ public:
 public:
     bool empty() const;
     size_type size() const; 
+    size_type max_size() const; 
     size_type capacity() const;
     pointer data();
     const_pointer data() const;
