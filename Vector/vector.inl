@@ -351,12 +351,14 @@ void Vector<T>::reserve(size_type new_cap) {
         return;
     }
 
-	pointer tmp = m_ptr;
     m_capacity = new_cap;
+
+	pointer tmp = m_ptr;
 	m_ptr = new value_type[m_capacity];
 	for (int i = 0; i < m_size; i++) {
 		m_ptr[i] = std::move(tmp[i]);
 	}
+
 	delete [] tmp;
 	tmp = nullptr;
 }
