@@ -22,7 +22,7 @@ Vector<T>::Vector(size_type count, const_reference value) : m_ptr(nullptr), m_si
     }
 
     m_capacity = 1;
-    while (m_capacity <= count && (m_capacity *= 2)); 
+    while (count >= m_capacity && (m_capacity *= 2)); 
 
     m_ptr = new value_type[m_capacity];
     for(size_type i = 0; i < m_size; i++) {
@@ -168,7 +168,7 @@ typename Vector<T>::Iterator Vector<T>::insert(const Iterator& pos, Iterator fir
     size_type range_size = last - first;
 
     if (m_size + range_size >= m_capacity) {
-        while (m_capacity < m_size + range_size && (m_capacity *= 2));
+        while (m_capacity <= m_size + range_size && (m_capacity *= 2));
         resize(m_capacity);
     }
 
