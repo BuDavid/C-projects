@@ -1,4 +1,5 @@
 #include "vector.hpp"
+#include <stdexcept>
 
 template <typename T>
 Vector<T>::Vector() noexcept : m_ptr(nullptr), m_size(0), m_capacity(0) {}
@@ -9,7 +10,7 @@ Vector<T>::Vector(const std::initializer_list<T>& list) : m_size(0), m_capacity(
         m_capacity *= 2;
     }
 
-    m_ptr = new T[m_capacity];
+    m_ptr = new value_type[m_capacity];
     for(const auto& elem : list) {
         m_ptr[m_size++] = elem;
     }
@@ -26,12 +27,11 @@ Vector<T>::Vector(size_type count, const T& value) : m_ptr(nullptr), m_size(coun
     m_capacity = 1;
     while (m_capacity <= count && (m_capacity *= 2)); 
 
-    m_ptr = new T[m_capacity];
+    m_ptr = new value_type[m_capacity];
     for(int i = 0; i < m_size; i++) {
         m_ptr[i] = value;
     }
 }
-
 
 template <typename T>
 Vector<T>::Vector(const Vector& other) {
@@ -40,7 +40,7 @@ Vector<T>::Vector(const Vector& other) {
 	if (!other.m_ptr) {
 		m_ptr = nullptr;
 	} else {
-        m_ptr = new T[m_capacity];
+        m_ptr = new value_type[m_capacity];
         for (int i = 0; i < m_size; i++) {
             m_ptr[i] = other.m_ptr[i];
         }
@@ -68,7 +68,7 @@ Vector<T>& Vector<T>::operator=(const Vector& other) {
         m_size = other.m_size;
         m_capacity = other.m_capacity;
 
-        m_ptr = new T[m_capacity];
+        m_ptr = new value_type[m_capacity];
         for (int i = 0; i < m_size; i++) {
             m_ptr[i] = other.m_ptr[i];
         }
@@ -347,9 +347,18 @@ void Vector<T>::reserve(size_type new_cap) {
         return;
     }
 
+    if (!new_cap) {
+        clear();
+        return;
+    }
+
+    if (new_cap < 0) {
+        throw std::invalid_argument("The size can't be negative.");
+    }
+
 	pointer tmp = m_ptr;
     m_capacity = new_cap;
-	m_ptr = new T[m_capacity];
+	m_ptr = new value_type[m_capacity];
 	for (int i = 0; i < m_size; i++) {
 		m_ptr[i] = std::move(tmp[i]);
 	}
