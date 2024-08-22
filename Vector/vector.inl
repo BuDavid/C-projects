@@ -92,7 +92,6 @@ typename Vector<T>::Iterator Vector<T>::erase(const Iterator& pos) {
     }
 
     size_type idx = pos - begin();
-    m_ptr[idx].~T();
 
     for (size_type i = idx; i < m_size - 1; i++) {
         m_ptr[idx] = std::move(m_ptr[i + 1]);
@@ -109,10 +108,6 @@ typename Vector<T>::Iterator Vector<T>::erase(const Iterator& first, const Itera
     size_type start = first - begin();
     size_type end = last - begin();
     size_type count = end - start;
-
-    for (size_type i = start; i < end; i++) {
-        m_ptr[i].~T();
-    }
 
     for (size_type i = end; i < m_size; i++) {
         m_ptr[start++] = std::move(m_ptr[i]);
@@ -275,9 +270,7 @@ void Vector<T>::push_back(value_type&& element) {
 
 template <typename T>
 void Vector<T>::pop_back() {
-	if (m_size) {
-        m_ptr[--m_size].~T();
-    }
+	if (m_size && m_size--); 
 }
 
 template <typename T>
