@@ -61,9 +61,11 @@ void Vector<T>::swap(Vector& other) noexcept {
 template <typename T>
 Vector<T>& Vector<T>::operator=(const Vector& other) {
     if (this != &other) { 
-        clear();
         m_size = other.m_size;
         m_capacity = other.m_capacity;
+        if(m_ptr) {
+            delete [] m_ptr;
+        }
 
         m_ptr = new value_type[m_capacity];
         for (size_type i = 0; i < m_size; i++) {
@@ -298,12 +300,7 @@ typename Vector<T>::size_type Vector<T>::capacity() const {
 
 template <typename T>
 void Vector<T>::clear() {
-	m_size = 0;
-	m_capacity = 0;
-	if (m_ptr) {
-		delete [] m_ptr;
-	}
-	m_ptr = nullptr;
+    m_size = 0;
 }
 
 template <typename T>
@@ -431,5 +428,10 @@ typename Vector<T>::const_pointer Vector<T>::data() const {
 
 template <typename T>
 Vector<T>::~Vector() {
-	clear();
+	m_size = 0;
+	m_capacity = 0;
+	if (m_ptr) {
+		delete [] m_ptr;
+	}
+	m_ptr = nullptr;
 }
