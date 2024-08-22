@@ -275,7 +275,9 @@ void Vector<T>::push_back(value_type&& element) {
 
 template <typename T>
 void Vector<T>::pop_back() {
-	if (m_size && m_size--); 
+	if (m_size) {
+        m_ptr[--m_size].~T();
+    }
 }
 
 template <typename T>
