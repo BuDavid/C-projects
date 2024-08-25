@@ -568,54 +568,50 @@ void ForwardList<T>::merge(ForwardList&& other, Compare comp) {
 
 template <typename T>
 typename ForwardList<T>::size_type ForwardList<T>::remove(const_reference value) {
+    Node dummy = {};
+    dummy.next = m_head;
+
     Node* curr = m_head;
-    Node* prev = nullptr;
+    Node* prev = &dummy;
     size_type count = 0;
 
     while (curr) {
         if (curr -> val == value) {
-            if (curr == m_head) {
-                Node* tmp = curr;
-                curr = curr -> next;
-                delete tmp;
-            } else {
-                prev -> next = curr -> next;
-                delete curr;
-                curr = prev -> next;
-            }
+            prev -> next = curr -> next;
+            delete curr;
             count++;
         } else {
             prev = curr;
-            curr = curr -> next;
         }
+        curr = prev -> next;
     }
+
+    m_head = dummy.next;
     return count;
 }
 
 template <typename T>
 template <typename UnaryPredicate>
 typename ForwardList<T>::size_type ForwardList<T>::remove_if(UnaryPredicate p) {
+    Node dummy = {};
+    dummy.next = m_head;
+
     Node* curr = m_head;
-    Node* prev = nullptr;
+    Node* prev = &dummy;
     size_type count = 0;
 
     while (curr) {
         if (p(curr -> val)) {
-            if (curr == m_head) {
-                Node* tmp = curr;
-                curr = curr -> next;
-                delete tmp;
-            } else {
-                prev -> next = curr -> next;
-                delete curr;
-                curr = prev -> next;
-            }
+            prev -> next = curr -> next;
+            delete curr;
             count++;
         } else {
             prev = curr;
-            curr = curr -> next;
         }
+        curr = prev -> next;
     }
+
+    m_head = dummy.next;
     return count;
 }
 
